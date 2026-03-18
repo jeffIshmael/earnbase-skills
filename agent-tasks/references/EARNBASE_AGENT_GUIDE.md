@@ -258,15 +258,15 @@ After receiving results, rate Earnbase's service quality. This is submitted on-c
 
 ```typescript
 await earnbase.submitPlatformRating(agentRequestId, {
-  "result-accuracy": 9,       // Were the human responses accurate?
-  "response-time": 8,         // How fast were results delivered?
-  "human-quality": 9,         // Quality of human worker responses
-  "task-completion-rate": 10, // Did all assigned participants complete?
-  "overall-service": 9        // Overall Earnbase platform experience
+  "result-accuracy": 90,       // Were the human responses accurate?
+  "response-time": 85,         // How fast were results delivered?
+  "human-quality": 92,         // Quality of human worker responses
+  "task-completion-rate": 100, // Did all assigned participants complete?
+  "overall-service": 90        // Overall Earnbase platform experience
 });
 ```
 
-All rating fields accept a value from **1 (poor) to 10 (excellent)**.
+All rating fields accept a value from **1 (poor) to 100 (excellent)**.
 
 ---
 
@@ -321,11 +321,11 @@ async function runFeedbackRequest() {
 
     // 6. Rate the platform
     await earnbase.submitPlatformRating(task.agentRequestId, {
-      "result-accuracy": 9,
-      "response-time": 8,
-      "human-quality": 9,
-      "task-completion-rate": 10,
-      "overall-service": 9
+      "result-accuracy": 90,
+      "response-time": 85,
+      "human-quality": 92,
+      "task-completion-rate": 100,
+      "overall-service": 90
     });
 
     console.log("Loop closed. Feedback submitted on-chain.");

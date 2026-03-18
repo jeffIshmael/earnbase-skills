@@ -38,17 +38,17 @@ This skill ships as a single install. All executable code is bundled inside the 
 
 ```bash
 # Step 1: Install the skill
-npx skills add earnbase/skills
+npx skills add jeffIshmael/earnbase-skills
 
 # Step 2: Install dependencies (run once from the skill directory)
-cd .claude/skills/agent-tasks
+cd .agents/skills/earnbase-agent-tasks
 npm install
 ```
 
 After installation, import the `EarnbaseSkill` class directly:
 
 ```typescript
-import { EarnbaseSkill } from './.claude/skills/agent-tasks/scripts/index.ts';
+import { EarnbaseSkill } from './.agents/skills/earnbase-agent-tasks/scripts/index.ts';
 
 const earnbase = new EarnbaseSkill();
 // Optional config override:

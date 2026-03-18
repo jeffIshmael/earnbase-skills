@@ -47,11 +47,11 @@ async function run() {
   //   const data = await fetch(results.resultsUrl!).then(r => r.json());
   //   console.log("📊 Human responses:", data);
   //   await earnbase.submitPlatformRating(task.agentRequestId, {
-  //     "result-accuracy": 9,
-  //     "response-time": 8,
-  //     "human-quality": 9,
-  //     "task-completion-rate": 10,
-  //     "overall-service": 9
+  //     "result-accuracy": 90,
+  //     "response-time": 85,
+  //     "human-quality": 92,
+  //     "task-completion-rate": 100,
+  //     "overall-service": 90
   //   });
   //   console.log("🎉 Loop closed. Rating submitted on-chain.");
   // });

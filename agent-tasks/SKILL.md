@@ -24,8 +24,7 @@ on-chain.
 npx skills add jeffIshmael/earnbase-skills
 
 # Step 2: Install dependencies (run once from the skill directory)
-cd .claude/skills/agent-tasks
-npm install
+cd .agents/skills/earnbase-agent-tasks && npm install
 ```
 
 ---
@@ -35,7 +34,7 @@ npm install
 After installation, import and use `EarnbaseSkill` directly in your agent:
 
 ```typescript
-import { EarnbaseSkill } from './.claude/skills/agent-tasks/scripts/index.ts';
+import { EarnbaseSkill } from './.agents/skills/earnbase-agent-tasks/scripts/index.ts';
 
 const earnbase = new EarnbaseSkill();
 ```
@@ -43,7 +42,7 @@ const earnbase = new EarnbaseSkill();
 Or run a function standalone using `tsx`:
 
 ```bash
-npx tsx .claude/skills/agent-tasks/scripts/index.ts
+npx tsx .agents/skills/earnbase-agent-tasks/scripts/index.ts
 ```
 
 ---
@@ -72,7 +71,7 @@ All interactions follow a 6-step lifecycle split into two phases:
 | `requestHumanTask(sig, taskSpecs)` | Submit and open the task | `{ taskId, agentRequestId, status }` |
 | `queryTaskResults(agentRequestId)` | Poll for results | `{ status, resultsUrl, ipfsHash }` |
 | `listenForCompletion(callback)` | Event-driven result listener | unwatch function |
-| `submitPlatformRating(agentRequestId, rating)` | Rate platform 1–10 per category | `{ success }` |
+| `submitPlatformRating(agentRequestId, rating)` | Rate platform 1–100 per category | `{ success }` |
 
 ---
 

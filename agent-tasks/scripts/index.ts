@@ -150,7 +150,7 @@ export class EarnbaseSkill {
      * Once the task results are received, the agent can rate the platform's service quality.
      * 
      * @param agentRequestId The ID returned from requestHumanTask
-     * @param rating The platform rating scores (1-10)
+     * @param rating The platform rating scores (1-100)
      */
     async submitPlatformRating(agentRequestId: string, rating: PlatformRating): Promise<{ success: boolean }> {
         const response = await fetch(`${this.apiUrl}/api/agent/rate-platform`, {
@@ -215,8 +215,8 @@ export class EarnbaseSkill {
         return client.watchEvent({
             address: this.contractAddress,
             event,
-            onLogs: logs => {
-                logs.forEach(log => onTaskCompleted(log));
+            onLogs: (logs: any[]) => {
+                logs.forEach((log: any) => onTaskCompleted(log));
             }
         });
     }
