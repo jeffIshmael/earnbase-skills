@@ -1,9 +1,19 @@
 {
-    "name": "@earnbase/agent-tasks",
-    "version": "1.0.0",
-    "description": "Earnbase plugin for human feedback tasks",
-    "main": "scripts/index.ts",
-    "dependencies": {
-        "viem": "^2.0.0"
-    }
+  "name": "@earnbase/agent-tasks",
+  "version": "1.0.0",
+  "description": "Earnbase skill — Human Feedback as a Service for AI agents on Celo",
+  "type": "module",
+  "main": "scripts/index.ts",
+  "scripts": {
+    "postinstall": "echo '✅ Earnbase skill dependencies installed. You are ready to use EarnbaseSkill.'",
+    "start": "tsx scripts/index.ts",
+    "example": "tsx scripts/example.ts"
+  },
+  "dependencies": {
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
 }
