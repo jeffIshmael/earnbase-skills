@@ -12,13 +12,24 @@ const earnbase = new EarnbaseSkill({
 });
 
 const taskSpecs = {
-  title: "Sentiment Rating",
-  prompt: "Rate the sentiment of this review from 1 (very negative) to 5 (very positive): 'This product exceeded my expectations!'",
-  feedbackType: "rating" as const,
+  title: "AI Writing Evaluation",
+  description: "We need humans to review the quality and tone of our latest AI-generated articles.",
   constraints: {
     participants: 5,
     rewardPerParticipant: 0.5, // USDC
-  }
+  },
+  subtasks: [
+    {
+      prompt: "How natural does this paragraph sound?",
+      type: "RATING" as const,
+      required: true
+    },
+    {
+      prompt: "What improvements would you suggest for the tone?",
+      type: "TEXT_INPUT" as const,
+      required: false
+    }
+  ]
 };
 
 async function run() {
@@ -59,12 +70,13 @@ async function run() {
   // ─── OPTION B: Polling ──────────────────────────────────────────────────────
   // let completed = false;
   // while (!completed) {
-  //   const result = await earnbase.queryTaskResults(task.agentRequestId);
+  //   const result = await earnbase.queryTaskStatus(task.agentRequestId);
   //   if (result.status === 'completed') {
   //     completed = true;
-  //     console.log("✅ Results ready:", result.resultsUrl);
+  //     const data = await earnbase.queryTaskResults(task.agentRequestId);
+  //     console.log("✅ Results ready:", data.resultsUrl);
   //   } else {
-  //     console.log("⏳ Still processing... retrying in 30s");
+  //     console.log(`⏳ Status: ${result.status}${result.progress ? ` (${result.progress}%)` : ''}... retrying in 30s`);
   //     await new Promise(r => setTimeout(r, 30_000));
   //   }
   // }

@@ -18,10 +18,10 @@ You are that agent. This document tells you everything you need to know.
 ```
 AI Agent (you)
     │
-    ├── 1. GET QUOTE        →  Earnbase API  →  returns price + destination address
-    ├── 2. PAY              →  USDC on Celo  →  wallet signature OR manual tx hash
-    ├── 3. SUBMIT TASK      →  Earnbase API  →  returns taskId + agentRequestId
-    ├── 4. WAIT FOR RESULTS →  blockchain event OR polling
+    ├── 1. GET QUOTE        →  Earnbase API   →  returns price + destination address
+    ├── 2. PAY              →  USDC on Celo   →  wallet signature OR manual tx hash
+    ├── 3. SUBMIT TASK      →  Earnbase API   →  returns taskId + requestId
+    ├── 4. WAIT FOR RESULTS →  blockchain event OR polling status
     ├── 5. RETRIEVE RESULTS →  IPFS / Pinata Gateway
     └── 6. RATE THE SERVICE →  on-chain via ERC-8004 giveFeedback
 ```
@@ -71,13 +71,24 @@ Before doing anything, call `getTaskQuote()` to find out how much to pay and whe
 
 ```typescript
 const quote = await earnbase.getTaskQuote({
-  title: "Sentiment Analysis",
-  prompt: "Read this product review and rate the sentiment from 1 (very negative) to 5 (very positive).",
-  feedbackType: "rating",
+  title: "AI Writing Evaluation",
+  description: "We need humans to review the quality and tone of our latest AI-generated articles.",
   constraints: {
     participants: 10,
     rewardPerParticipant: 0.5, // USDC per human
-  }
+  },
+  subtasks: [
+    {
+      prompt: "How natural does this paragraph sound?",
+      type: "RATING",
+      required: true
+    },
+    {
+      prompt: "What improvements would you suggest for the tone?",
+      type: "TEXT_INPUT",
+      required: false
+    }
+  ]
 });
 
 // quote returns:
@@ -96,16 +107,19 @@ A `status: 402` response means **payment required** — this is expected and cor
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `title` | `string` | ✅ | Short name for the task |
-| `prompt` | `string` | ✅ | Full instructions shown to human workers |
-| `feedbackType` | `string` | ✅ | `text_input`, `multiple_choice`, `rating`, or `file_upload` |
+| `description` | `string` | ✅ | Overall explanation of the task |
 | `constraints.participants` | `number` | ✅ | How many humans should complete the task |
 | `constraints.rewardPerParticipant` | `number` | ✅ | USDC reward per human |
-| `constraints.allowedCountries` | `string[]` | ❌ | Restrict by country (ISO codes) |
-| `constraints.allowedNationalities` | `string[]` | ❌ | Restrict by nationality |
-| `constraints.minAge` / `maxAge` | `number` | ❌ | Age range restriction |
-| `constraints.allowedGenders` | `string[]` | ❌ | `"Male"`, `"Female"`, `"Other"` |
-| `options` | `string[]` | ⚠️ | Required only for `multiple_choice` type |
-| `paymentTxHash` | `string` | ⚠️ | Required only for manual payment flow |
+| `subtasks` | `Subtask[]` | ✅ | List of feedback modules |
+
+#### Subtask Object
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `prompt` | `string` | ✅ | Specific question for the human |
+| `type` | `enum` | ✅ | `MULTIPLE_CHOICE`, `TEXT_INPUT`, `FILE_UPLOAD`, `CHOICE_SELECTION`, `RATING` |
+| `options` | `string[]` | ⚠️ | Required only for choice-based types |
+| `required` | `boolean` | ❌ | Defaults to `true` |
 
 ---
 
@@ -122,7 +136,7 @@ You have access to a wallet and can sign transactions directly.
 const task = await earnbase.requestHumanTask(paymentSignature, taskSpecs);
 ```
 
-Where `paymentSignature` is your X402-compliant signed payment payload authorising the USDC transfer to `destinationAddress`.
+Where `paymentSignature` is your X402-compliant signed payment payload authorising the USDC transfer to `destinationAddress`. This is passed in the `X-PAYMENT` header.
 
 #### Path B: Manual Payment (Human Admin Required)
 
@@ -141,7 +155,7 @@ Once the human provides the `transactionHash`:
 ```typescript
 const task = await earnbase.requestHumanTask(null, {
   ...taskSpecs,
-  paymentTxHash: transactionHash  // replaces the payment signature
+  paymentTxHash: transactionHash  // sent in the X-PAYMENT header
 });
 ```
 
@@ -157,12 +171,12 @@ const task = await earnbase.requestHumanTask(paymentSignature, taskSpecs);
 // task returns:
 // {
 //   taskId: 42,
-//   agentRequestId: "req_abc123xyz",
+//   agentRequestId: "req_abc123xyz", // This is the requestId used for polling
 //   status: "processing"
 // }
 ```
 
-**Store `agentRequestId` immediately.** You will need it to retrieve results and submit your platform rating.
+**Store `agentRequestId` immediately.** You will need it to retrieve status, results, and submit your platform rating.
 
 ---
 
@@ -205,11 +219,12 @@ The `FeedbackRequestCompleted` event emits:
 If you cannot maintain a long-running listener, poll at intervals instead.
 
 ```typescript
-async function waitForResults(agentRequestId: string) {
+async function waitForResults(requestId: string) {
   while (true) {
-    const result = await earnbase.queryTaskResults(agentRequestId);
+    const status = await earnbase.queryTaskStatus(requestId);
 
-    if (result.status === 'completed') {
+    if (status.status === 'completed') {
+      const result = await earnbase.queryTaskResults(requestId);
       console.log("Results ready at:", result.resultsUrl);
       return result;
     }
@@ -220,13 +235,19 @@ async function waitForResults(agentRequestId: string) {
 }
 ```
 
+`queryTaskStatus()` returns:
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `string` | `"processing"`, `"completed"`, or `"failed"` |
+| `message` | `string` | Optional status message |
+| `progress` | `string` | Optional progress percentage |
+
 `queryTaskResults()` returns:
 
 | Field | Type | Description |
 |---|---|---|
 | `status` | `string` | `"processing"` or `"completed"` |
-| `message` | `string` | Optional status message |
-| `progress` | `string` | Optional progress indicator |
 | `ipfsHash` | `string` | Raw IPFS CID when completed |
 | `resultsUrl` | `string` | Pinata Gateway URL to the results JSON |
 
@@ -291,13 +312,19 @@ import { EarnbaseSkill } from './.claude/skills/agent-tasks/scripts/index.ts';
 const earnbase = new EarnbaseSkill();
 
 const taskSpecs = {
-  title: "Product Review Sentiment",
-  prompt: "Rate the sentiment of this review from 1 (very negative) to 5 (very positive): 'This product exceeded my expectations!'",
-  feedbackType: "rating" as const,
+  title: "AI Writing Evaluation",
+  description: "We need humans to review the quality and tone of our latest AI-generated articles.",
   constraints: {
     participants: 5,
     rewardPerParticipant: 0.5,
-  }
+  },
+  subtasks: [
+    {
+      prompt: "How natural does this paragraph sound?",
+      type: "RATING" as const,
+      required: true
+    }
+  ]
 };
 
 async function runFeedbackRequest() {
@@ -310,7 +337,7 @@ async function runFeedbackRequest() {
   const task = await earnbase.requestHumanTask(myPaymentSignature, taskSpecs);
   console.log(`Task opened. ID: ${task.agentRequestId}`);
 
-  // 4. Listen for completion
+  // 4. Wait for completion
   const unwatch = earnbase.listenForCompletion(async (log) => {
     unwatch();
 

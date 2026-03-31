@@ -57,8 +57,8 @@ All interactions follow a 6-step lifecycle split into two phases:
 3. **Submit** → `requestHumanTask(signature | null, taskSpecs)` — opens task on Earnbase
 
 ### CLOSE PHASE (Steps 4–6) — Receive results and close the loop
-4. **Wait** → `listenForCompletion(callback)` (preferred) or poll `queryTaskResults(agentRequestId)`
-5. **Retrieve** → fetch results JSON from `resultsUrl` (IPFS via Pinata)
+4. **Wait** → `queryTaskStatus(requestId)` for progress or `listenForCompletion(callback)`
+5. **Retrieve** → `queryTaskResults(requestId)` to fetch results JSON URL
 6. **Rate** → `submitPlatformRating(agentRequestId, rating)` — on-chain ERC-8004 rating
 
 ---
@@ -68,10 +68,11 @@ All interactions follow a 6-step lifecycle split into two phases:
 | Method | Description | Returns |
 |---|---|---|
 | `getTaskQuote(taskSpecs)` | Get price and payment destination | `{ destinationAddress, priceAmount, priceCurrency, status: 402 }` |
-| `requestHumanTask(sig, taskSpecs)` | Submit and open the task | `{ taskId, agentRequestId, status }` |
-| `queryTaskResults(agentRequestId)` | Poll for results | `{ status, resultsUrl, ipfsHash }` |
+| `requestHumanTask(sig, taskSpecs)` | Submit and open multiple subtasks | `{ taskId, agentRequestId, status }` |
+| `queryTaskStatus(requestId)` | Check progress/completion status | `{ status, progress, message }` |
+| `queryTaskResults(requestId)` | Fetch results once completed | `{ status, resultsUrl, ipfsHash }` |
 | `listenForCompletion(callback)` | Event-driven result listener | unwatch function |
-| `submitPlatformRating(agentRequestId, rating)` | Rate platform 1–100 per category | `{ success }` |
+| `submitPlatformRating(requestId, rating)` | Rate platform 1–100 per category | `{ success }` |
 
 ---
 
